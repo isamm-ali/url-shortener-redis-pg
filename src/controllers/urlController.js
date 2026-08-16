@@ -4,84 +4,49 @@ import {
   getUrlStats,
   getUrlMetrics,
 } from "../services/urlService.js";
+import { AppError } from "../utils/AppError.js";
 
 export const createUrl = async (req, res) => {
-  try {
-    const originalUrl = req.body.url;
-    const expiresIn = req.body.expiresIn;
-    if (!originalUrl) {
-      return res.status(400).json({
-        error: "Please provide a url!",
-      });
-    }
-    let url;
-    try {
-      url = new URL(originalUrl);
-    } catch {
-      return res.status(500).json({
-        error: "Something went wrong!",
-      });
-    }
-    if (!["http:", "https:"].includes(url.protocol)) {
-      return res.status(400).json({
-        error: "Please provide a valid url!",
-      });
-    }
-    if (expiresIn != null && (!Number.isInteger(expiresIn) || expiresIn <= 0)) {
-      return res.status(400).json({
-        error: "Please provide a valid expiry!",
-      });
-    }
-    const result = await createShortUrl(originalUrl, expiresIn);
-    res.status(201).json(result);
-  } catch {
-    res.status(500).json({
-      error: "Something went wrong!",
-    });
+  const originalUrl = req.body.url;
+  const expiresIn = req.body.expiresIn;
+  if (!originalUrl) {
+    throw new AppError("Please provide a url!", 400);
   }
+  let url;
+  try {
+    url = new URL(originalUrl);
+  } catch {
+    throw new AppError("Please provide a valid url!", 400);
+  }
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new AppError("Please provide a valid url!", 400);
+  }
+  if (expiresIn != null && (!Number.isInteger(expiresIn) || expiresIn <= 0)) {
+    throw new AppError("Please provide a valid expiry!", 400);
+  }
+  const result = await createShortUrl(originalUrl, expiresIn);
+  res.status(201).json(result);
 };
 
 export const redirectToUrl = async (req, res) => {
-  try {
-    const shortCode = req.params.code;
-    const originalUrl = await getOriginalUrl(shortCode);
-    if (!originalUrl) {
-      return res.status(404).json({
-        error: "Url expired or not found!",
-      });
-    }
-    res.redirect(originalUrl);
-  } catch {
-    res.status(500).json({
-      error: "Something went wrong!",
-    });
+  const shortCode = req.params.code;
+  const originalUrl = await getOriginalUrl(shortCode);
+  if (!originalUrl) {
+    throw new AppError("Url expired or not found!", 404);
   }
+  res.redirect(originalUrl);
 };
 
 export const getCodeStats = async (req, res) => {
-  try {
-    const shortCode = req.params.code;
-    const result = await getUrlStats(shortCode);
-    if (!result) {
-      return res.status(404).json({
-        error: "Stats not found!",
-      });
-    }
-    res.status(200).json(result);
-  } catch {
-    res.status(500).json({
-      error: "Something went wrong!",
-    });
+  const shortCode = req.params.code;
+  const result = await getUrlStats(shortCode);
+  if (!result) {
+    throw new AppError("Stats not found!", 404);
   }
+  res.status(200).json(result);
 };
 
 export const getCodeMetrics = async (req, res) => {
-  try {
-    const result = await getUrlMetrics();
-    res.status(200).json(result);
-  } catch {
-    res.status(500).json({
-      error: "Something went wrong!",
-    });
-  }
+  const result = await getUrlMetrics();
+  res.status(200).json(result);
 };

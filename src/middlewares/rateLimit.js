@@ -2,7 +2,6 @@ import { client } from "../services/redisService.js";
 
 export function rateLimit(maxReq, windowPeriod) {
   return async (req, res, next) => {
-    try {
       const ip = req.ip;
       const requestCount = await client.incr(`rateLimit:${ip}`);
       if (requestCount === 1) {
@@ -15,10 +14,5 @@ export function rateLimit(maxReq, windowPeriod) {
         });
       }
       next();
-    } catch {
-      res.status(500).json({
-        error: "Something went wrong!",
-      });
-    }
   };
 }
