@@ -1,15 +1,17 @@
-# URL Shortener (Scalable)
+# URL Shortener
 
-A backend URL shortener built with Express 5, PostgreSQL, and Redis. Includes short link creation with optional expiry, click/stat tracking, cache-backed redirects, and per-route rate limiting. Fully containerized with Docker Compose.
+A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates short codes for long URLs, caches redirects for speed, tracks click activity, and rate-limits every route — all running behind a single Docker Compose stack.
 
 ## Features
 
-- **Shorten & redirect** — generate a 6-character short code for any URL, with optional expiry (in seconds)
-- **Redis-backed redirects** — cache-first lookups on redirect, falling back to Postgres on a miss
-- **Click tracking** — per-code click counts and last-clicked timestamp, tracked in Redis
-- **Cache metrics** — global cache hit/miss stats via `/stats/cache`
-- **Rate limiting** — fixed-window rate limiting per IP, configurable per route
-- **Dockerized** — app, Postgres, and Redis run via a single `docker compose up`
+- **Short link generation** — 6-character short codes, generated with automatic retry on collision
+- **Optional expiry** — links can be created with a TTL (in seconds) or set to never expire
+- **Redis-backed redirects** — cache-aside lookups on every redirect: Redis first, falling back to Postgres on a miss and repopulating the cache
+- **Click tracking** — per-code click counts and last-clicked timestamps, tracked in Redis and exposed via the stats endpoint
+- **Cache metrics** — global cache hit/miss counters and hit rate via `/stats/cache`
+- **Rate limiting** — fixed-window rate limiting per IP, backed by Redis, configurable independently per route
+- **Centralized error handling** — a single `AppError` class and error middleware produce consistent JSON error responses across the whole API, with Express 5's built-in async error forwarding handling rejected promises automatically
+- **Dockerized** — app, Postgres, and Redis run together via `docker compose up`, with healthchecks gating startup order
 
 ## Tech Stack
 
@@ -31,12 +33,16 @@ A backend URL shortener built with Express 5, PostgreSQL, and Redis. Includes sh
 │   │   └── urlController.js
 │   ├── db/
 │   │   └── postgres.js
+│   ├── middlewares/
+│   │   ├── errorMiddleware.js
+│   │   └── rateLimit.js
 │   ├── routes/
 │   │   └── urlRoutes.js
 │   ├── services/
-│   │   ├── rateLimit.js
 │   │   ├── redisService.js
 │   │   └── urlService.js
+│   ├── utils/
+│   │   └── AppError.js
 │   ├── app.js
 │   └── server.js
 ├── compose.yaml
@@ -102,7 +108,7 @@ POST /urls
 }
 ```
 
-`expiresIn` is optional — pass `null` (or omit handling for it) for a link that never expires. Value is in seconds.
+`expiresIn` is optional — omit it or pass `null` for a link that never expires. Value is in seconds.
 
 **Response** `201`
 
@@ -163,7 +169,7 @@ GET /stats/cache
 | `POST /urls`         | 10 requests / 60s |
 | `GET /stats/:code`   | 30 requests / 60s |
 | `GET /stats/cache`   | 10 requests / 60s |
-| `GET /:code`         | 50 requests / 60s |
+| `GET /:code`         | 10 requests / 60s |
 
 Limits are per IP, tracked in Redis with a fixed window. Exceeding the limit returns `429` with a `retryAfter` field (seconds).
 
@@ -197,7 +203,6 @@ The Redis hot-cache test maintained a **100% cache hit rate with 0 misses**.
 As concurrency increased, requests per second started to drop while response times increased sharply.
 
 > These benchmarks were run locally and should not be interpreted as production capacity.
-
 
 ## License
 
