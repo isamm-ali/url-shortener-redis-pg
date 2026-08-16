@@ -7,6 +7,6 @@ const Router = express.Router();
 Router.post('/urls', rateLimit(10, 60), createUrl);
 Router.get('/stats/cache', rateLimit(10, 60), getCodeMetrics);
 Router.get('/stats/:code', rateLimit(30, 60), getCodeStats);
-Router.get('/:code', rateLimit(50, 60), redirectToUrl);
+Router.get('/:code', rateLimit(10000000, 60), redirectToUrl);
 
 export default Router;

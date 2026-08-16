@@ -14,8 +14,9 @@ export const createUrl = async (req, res) => {
         error: "Please provide a url!",
       });
     }
+    let url;
     try {
-      const url = new URL(originalUrl);
+      url = new URL(originalUrl);
     } catch {
       return res.status(500).json({
         error: "Something went wrong!",

@@ -17,5 +17,7 @@
     "pg": "^8.23.0",
     "redis": "^6.2.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "autocannon": "^8.0.0"
+  }
 }
