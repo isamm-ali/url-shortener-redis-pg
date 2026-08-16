@@ -13,16 +13,32 @@ export function generateShortCode() {
 }
 
 export async function createShortUrl(originalUrl, expiresIn) {
-  const shortCode = generateShortCode();
-  const { rows } = await db.query(
-    `insert into urls (short_code, original_url, expires_at) values ($1, $2, now() + ($3 * interval '1 second')) returning *`,
-    [shortCode, originalUrl, expiresIn],
-  );
-  return {
-    originalUrl: rows[0].original_url,
-    shortCode: rows[0].short_code,
-    expires_at: rows[0].expires_at,
-  };
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const shortCode = generateShortCode();
+
+    try {
+      const { rows } = await db.query(
+        `insert into urls (short_code, original_url, expires_at)
+        values ($1, $2, now() + ($3 * interval '1 second'))
+        returning *`,
+        [shortCode, originalUrl, expiresIn],
+      );
+
+      return {
+        originalUrl: rows[0].original_url,
+        shortCode: rows[0].short_code,
+        expires_at: rows[0].expires_at,
+      };
+    } catch (error) {
+      // PostgreSQL unique_violation
+      if (error.code === "23505") {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+  throw new Error("Failed to generate a unique short code")
 }
 
 export async function getOriginalUrl(shortCode) {
