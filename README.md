@@ -70,13 +70,11 @@ A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates s
 
    ```env
    PORT=5000
-
    POSTGRES_USER=postgres
    POSTGRES_PASSWORD=postgres
    POSTGRES_HOST=postgres
    POSTGRES_PORT=5432
    POSTGRES_DB=mydatabase
-
    REDIS_HOST=redis
    REDIS_PORT=6379
    ```
