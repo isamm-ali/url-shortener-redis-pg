@@ -1,28 +1,35 @@
 # URL Shortener
 
-A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates short codes for long URLs, caches redirects for speed, tracks click activity, and rate-limits every route — all running behind a single Docker Compose stack.
+A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates short codes for long URLs, caches redirects for speed, tracks click activity, and rate-limits every route, all running behind a single Docker Compose stack.
+
+![Node.js](https://img.shields.io/badge/Node.js_22-339933?style=flat&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express_5-000000?style=flat&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ## Features
 
-- **Short link generation** — 6-character short codes, generated with automatic retry on collision
-- **Optional expiry** — links can be created with a TTL (in seconds) or set to never expire
-- **Redis-backed redirects** — cache-aside lookups on every redirect: Redis first, falling back to Postgres on a miss and repopulating the cache
-- **Click tracking** — per-code click counts and last-clicked timestamps, tracked in Redis and exposed via the stats endpoint
-- **Cache metrics** — global cache hit/miss counters and hit rate via `/stats/cache`
-- **Rate limiting** — fixed-window rate limiting per IP, backed by Redis, configurable independently per route
-- **Centralized error handling** — a single `AppError` class and error middleware produce consistent JSON error responses across the whole API, with Express 5's built-in async error forwarding handling rejected promises automatically
-- **Dockerized** — app, Postgres, and Redis run together via `docker compose up`, with healthchecks gating startup order
+- **Short link generation**: 6-character short codes, generated with automatic retry on collision
+- **Optional expiry**: links can be created with a TTL (in seconds) or set to never expire
+- **Redis-backed redirects**: cache-aside lookups on every redirect. Redis first, falling back to Postgres on a miss and repopulating the cache
+- **Click tracking**: per-code click counts and last-clicked timestamps, tracked in Redis and exposed via the stats endpoint
+- **Cache metrics**: global cache hit/miss counters and hit rate via `/stats/cache`
+- **Rate limiting**: fixed-window rate limiting per IP, backed by Redis, configurable independently per route
+- **Centralized error handling**: a single `AppError` class and error middleware produce consistent JSON error responses across the whole API, with Express 5's built-in async error forwarding handling rejected promises automatically
+- **Dockerized**: app, Postgres, and Redis run together via `docker compose up`, with healthchecks gating startup order
 
-## Tech Stack
+## Tech stack
 
-| Layer      | Tech                        |
-|------------|------------------------------|
-| Runtime    | Node.js 22, Express 5        |
-| Database   | PostgreSQL                   |
-| Cache      | Redis (redis-stack)          |
-| Container  | Docker, Docker Compose        |
+| Layer | Tech |
+|---|---|
+| Runtime | Node.js 22, Express 5 |
+| Database | PostgreSQL |
+| Cache | Redis (redis-stack) |
+| Container | Docker, Docker Compose |
 
-## Project Structure
+## Project structure
 
 ```
 .
@@ -51,7 +58,7 @@ A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates s
 └── .env
 ```
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
@@ -82,7 +89,7 @@ A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates s
 
 3. The app is available at `http://localhost:5000`.
 
-### Running Locally (without Docker)
+### Running locally (without Docker)
 
 ```bash
 npm install
@@ -91,7 +98,7 @@ npm start
 
 Make sure Postgres and Redis are running and reachable at the hosts/ports set in `.env`.
 
-## API Reference
+## API reference
 
 ### Create a short URL
 
@@ -108,7 +115,7 @@ POST /urls
 }
 ```
 
-`expiresIn` is optional — omit it or pass `null` for a link that never expires. Value is in seconds.
+`expiresIn` is optional, omit it or pass `null` for a link that never expires. Value is in seconds.
 
 **Response** `201`
 
@@ -162,29 +169,29 @@ GET /stats/cache
 }
 ```
 
-## Rate Limits
+## Rate limits
 
-| Route              | Limit             |
-|---------------------|-------------------|
-| `POST /urls`         | 10 requests / 60s |
-| `GET /stats/:code`   | 30 requests / 60s |
-| `GET /stats/cache`   | 10 requests / 60s |
-| `GET /:code`         | 10 requests / 60s |
+| Route | Limit |
+|---|---|
+| `POST /urls` | 10 requests / 60s |
+| `GET /stats/:code` | 30 requests / 60s |
+| `GET /stats/cache` | 10 requests / 60s |
+| `GET /:code` | 10 requests / 60s |
 
 Limits are per IP, tracked in Redis with a fixed window. Exceeding the limit returns `429` with a `retryAfter` field (seconds).
 
-## Environment Variables
+## Environment variables
 
-| Variable            | Description                     |
-|----------------------|----------------------------------|
-| `PORT`               | Port the app listens on          |
-| `POSTGRES_USER`      | Postgres username                |
-| `POSTGRES_PASSWORD`  | Postgres password                |
-| `POSTGRES_HOST`      | Postgres host                    |
-| `POSTGRES_PORT`      | Postgres port                    |
-| `POSTGRES_DB`        | Postgres database name           |
-| `REDIS_HOST`         | Redis host                       |
-| `REDIS_PORT`         | Redis port                       |
+| Variable | Description |
+|---|---|
+| `PORT` | Port the app listens on |
+| `POSTGRES_USER` | Postgres username |
+| `POSTGRES_PASSWORD` | Postgres password |
+| `POSTGRES_HOST` | Postgres host |
+| `POSTGRES_PORT` | Postgres port |
+| `POSTGRES_DB` | Postgres database name |
+| `REDIS_HOST` | Redis host |
+| `REDIS_PORT` | Redis port |
 
 ## Benchmarks
 
@@ -192,11 +199,11 @@ Load testing was performed using **autocannon** against the Redis-backed `GET /:
 
 ### Results
 
-| Concurrent connections | RPS         | Avg Latency | p99 Latency |
-| ---------------------- | ----------- | ----------- | ----------- |
-| 500                    | 4,277 req/s | 116 ms      | 266 ms      |
-| 1,000                  | 3,752 req/s | 264 ms      | 1,196 ms    |
-| 2,000                  | 3,281 req/s | 631 ms      | 2,575 ms    |
+| Concurrent connections | RPS | Avg latency | p99 latency |
+|---|---|---|---|
+| 500 | 4,277 req/s | 116 ms | 266 ms |
+| 1,000 | 3,752 req/s | 264 ms | 1,196 ms |
+| 2,000 | 3,281 req/s | 631 ms | 2,575 ms |
 
 The Redis hot-cache test maintained a **100% cache hit rate with 0 misses**.
 
@@ -206,4 +213,4 @@ As concurrency increased, requests per second started to drop while response tim
 
 ## License
 
-ISC
+MIT
