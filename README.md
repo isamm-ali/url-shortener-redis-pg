@@ -12,7 +12,6 @@ A backend URL shortener built with Express 5, PostgreSQL, and Redis. Generates s
 ## Stress Test Preview
 
 | | |
-|---|---|
 | <img src="https://github.com/user-attachments/assets/86c13aaa-2220-4d3e-95a6-bb4563aaf417" width="500"> | <img src="https://github.com/user-attachments/assets/5bee257a-bb33-44aa-a2ec-6cd8939d0250" width="500"> |
 | <img src="https://github.com/user-attachments/assets/d774beca-9328-4f23-8758-992a2d396029" width="500"> | <img src="https://github.com/user-attachments/assets/9417e434-e9b1-49a0-a839-1ab4c2a70832" width="500"> |
 
